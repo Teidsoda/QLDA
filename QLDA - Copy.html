@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans antialiased">
+    
+    <!-- Login Page -->
+    <div id="login-page" class="h-screen w-screen flex items-center justify-center p-4 md:p-8">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Đăng Nhập</h1>
+                <p class="text-gray-500 mt-2">Đăng nhập để tiếp tục</p>
+            </div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
+                    <input type="email" id="email" name="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="your.email@example.com" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">Mật khẩu</label>
+                    <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="********" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Đăng Nhập</button>
+            </form>
+            <div id="login-message" class="mt-4 text-center text-red-500 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden min-h-screen container mx-auto p-4 md:p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-800">Bảng điều khiển Admin</h1>
+            <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">
+                Đăng xuất
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex mb-8 border-b-2 border-gray-300">
+            <button id="users-tab" class="tab-button px-6 py-3 font-semibold text-lg transition-colors duration-300 text-blue-600 border-b-4 border-blue-600">
+                Người dùng
+            </button>
+            <button id="estimates-tab" class="tab-button px-6 py-3 font-semibold text-lg transition-colors duration-300 text-gray-600 hover:text-blue-600">
+                Dự toán
+            </button>
+            <button id="planning-tab" class="tab-button px-6 py-3 font-semibold text-lg transition-colors duration-300 text-gray-600 hover:text-blue-600">
+                Kế hoạch
+            </button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="users-content" class="tab-content">
+            <!-- User Management Table -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-700">Quản lý người dùng</h2>
+                    <button id="add-user-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">
+                        Thêm người dùng
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tên</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Vai trò</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body" class="divide-y divide-gray-200">
+                            <!-- User data will be rendered here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="estimates-content" class="tab-content hidden">
+            <!-- Bảng quản lý dự toán -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-700">Quản lý dự toán thiết kế</h2>
+                    <button id="add-estimate-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">
+                        Thêm hạng mục
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hạng mục công việc</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Đơn vị</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Số lượng</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Đơn giá</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thành tiền</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="estimate-table-body" class="divide-y divide-gray-200">
+                            <!-- Dữ liệu dự toán sẽ được render ở đây bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="planning-content" class="tab-content">
+            <!-- Bảng tổng quan kế hoạch dự án -->
+            <div id="project-overview" class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <!-- Header thống kê -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-blue-100 p-4 rounded-lg shadow-sm text-center">
+                        <p id="total-projects" class="text-4xl font-bold text-blue-600">0</p>
+                        <p class="text-sm text-blue-800">Tổng dự án</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded-lg shadow-sm text-center">
+                        <p id="completed-projects" class="text-4xl font-bold text-green-600">0</p>
+                        <p class="text-sm text-green-800">Đã hoàn thành</p>
+                    </div>
+                    <div class="bg-yellow-100 p-4 rounded-lg shadow-sm text-center">
+                        <p id="in-progress-projects" class="text-4xl font-bold text-yellow-600">0</p>
+                        <p class="text-sm text-yellow-800">Đang thực hiện</p>
+                    </div>
+                    <div class="bg-red-100 p-4 rounded-lg shadow-sm text-center">
+                        <p id="not-started-projects" class="text-4xl font-bold text-red-600">0</p>
+                        <p class="text-sm text-red-800">Chưa thực hiện</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-700">Tổng quan kế hoạch dự án</h2>
+                    <button id="add-project-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">
+                        Thêm dự án
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tên dự án</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Số hạng mục</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phụ trách chính</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hạn chót</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tình trạng công việc</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">% Tiến độ</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Trạng thái</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="project-table-body" class="divide-y divide-gray-200">
+                            <!-- Dữ liệu dự án sẽ được render ở đây bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Trang chi tiết dự án (ẩn theo mặc định) -->
+            <div id="project-detail" class="bg-white p-6 rounded-lg shadow-lg hidden">
+                <div class="flex items-center mb-6">
+                    <button id="back-to-projects-btn" class="text-blue-600 hover:text-blue-800 mr-4 transition-colors duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </button>
+                    <!-- Header mới cho chi tiết dự án -->
+                    <div id="project-detail-header" class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-4 bg-gray-50 rounded-lg shadow-sm">
+                        <!-- Vùng thông tin không chỉnh sửa -->
+                        <div class="flex flex-col space-y-2">
+                            <h2 class="text-2xl font-bold text-gray-800" id="project-detail-name-readonly"></h2>
+                            <p class="text-sm text-gray-600"><span class="font-semibold">Phụ trách chính:</span> <span id="project-detail-assignee"></span></p>
+                            <p class="text-sm text-gray-600"><span class="font-semibold">Hạn chót:</span> <span id="project-detail-end-date"></span></p>
+                            <p class="text-sm text-gray-600"><span class="font-semibold">Tình trạng công việc:</span> <span id="project-detail-status"></span></p>
+                        </div>
+                        <!-- Vùng nhập liệu -->
+                        <div class="flex flex-col space-y-2">
+                            <div class="flex items-end gap-2">
+                                <div class="flex-grow">
+                                    <label for="project-location" class="block text-gray-700 font-semibold mb-1">Địa điểm</label>
+                                    <input type="text" id="project-location" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập địa điểm dự án">
+                                </div>
+                                <button id="save-location-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">
+                                    Lưu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sơ đồ Gantt -->
+                <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                    <h3 class="text-xl font-bold text-gray-700 mb-4">Tiến độ tổng</h3>
+                    <div id="gantt-chart-container" class="space-y-4">
+                        <!-- Chart sẽ được render ở đây bằng JS -->
+                    </div>
+                </div>
+                
+                <!-- Phân vùng Nội dung khảo sát (mới) -->
+                <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                    <div class="flex justify-between items-center cursor-pointer" id="survey-header">
+                        <h3 class="text-xl font-bold text-gray-700">Nội dung khảo sát</h3>
+                        <svg id="survey-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 transform rotate-90 transition-transform duration-300">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </div>
+                    <div id="survey-content" class="mt-4 hidden">
+                        <textarea id="survey-textarea" class="w-full h-32 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập nội dung khảo sát..."></textarea>
+                        <button id="save-survey-btn" class="mt-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">Lưu nội dung</button>
+                    </div>
+                </div>
+
+                <!-- Phân vùng Vướng mắc (mới) -->
+                <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                    <div class="flex justify-between items-center cursor-pointer" id="issues-header">
+                        <h3 class="text-xl font-bold text-gray-700">Vướng mắc</h3>
+                        <svg id="issues-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 transform rotate-90 transition-transform duration-300">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </div>
+                    <div id="issues-content" class="mt-4 hidden">
+                        <textarea id="issues-textarea" class="w-full h-32 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập các vướng mắc của dự án..."></textarea>
+                        <button id="save-issues-btn" class="mt-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">Lưu nội dung</button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mb-4">
+                    <button id="add-task-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-300">
+                        Thêm công việc
+                    </button>
+                </div>
+
+                <!-- Đây là nơi các bảng công việc sẽ được render theo từng bộ môn -->
+                <div id="task-list-container" class="space-y-8">
+                    <!-- Nội dung sẽ được render bằng JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- User Edit/Add Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="user-modal-title" class="text-xl font-bold mb-4">Thêm người dùng mới</h3>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                <div class="mb-4">
+                    <label for="user-name" class="block text-gray-700 text-sm font-semibold mb-2">Tên</label>
+                    <input type="text" id="user-name" name="name" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="user-email" class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
+                    <input type="email" id="user-email" name="email" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="user-role" class="block text-gray-700 text-sm font-semibold mb-2">Vai trò</label>
+                    <select id="user-role" name="role" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="admin">Quản trị viên</option>
+                        <option value="user">Người dùng</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="user-password" class="block text-gray-700 text-sm font-semibold mb-2">Mật khẩu</label>
+                    <input type="password" id="user-password" name="password" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="close-user-modal-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-md transition-colors duration-300">Hủy</button>
+                    <button type="submit" id="save-user-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal chỉnh sửa/thêm dự toán -->
+    <div id="estimate-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="estimate-modal-title" class="text-xl font-bold mb-4">Thêm hạng mục dự toán</h3>
+            <form id="estimate-form">
+                <input type="hidden" id="estimate-id">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="estimate-work-item">Hạng mục công việc</label>
+                    <input type="text" id="estimate-work-item" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="estimate-unit">Đơn vị tính</label>
+                    <input type="text" id="estimate-unit" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="estimate-quantity">Số lượng</label>
+                    <input type="number" id="estimate-quantity" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="estimate-unit-price">Đơn giá (VNĐ)</label>
+                    <input type="number" id="estimate-unit-price" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Thành tiền</label>
+                    <p id="estimate-total" class="w-full px-3 py-2 font-bold text-lg text-blue-600 rounded-md bg-gray-100"></p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="close-estimate-modal-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                        Hủy
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                        Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal chỉnh sửa/thêm dự án -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="project-modal-title" class="text-xl font-bold mb-4">Thêm dự án mới</h3>
+            <form id="project-form">
+                <input type="hidden" id="project-id">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="project-name">Tên dự án</label>
+                    <input type="text" id="project-name" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="project-assignee">Người phụ trách chính</label>
+                    <input type="text" id="project-assignee" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="project-end-date">Hạn chót</label>
+                    <input type="date" id="project-end-date" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="project-status">Tình trạng công việc</label>
+                    <select id="project-status" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="Theo tiến độ">Theo tiến độ</option>
+                        <option value="Gấp">Gấp</option>
+                        <option value="Tạm dừng">Tạm dừng</option>
+                        <option value="Dừng">Dừng</option>
+                    </select>
+                </div>
+                 <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="project-location-modal">Địa điểm</label>
+                    <input type="text" id="project-location-modal" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="close-project-modal-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                        Hủy
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                        Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal chỉnh sửa/thêm công việc -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="task-modal-title" class="text-xl font-bold mb-4">Thêm công việc mới</h3>
+            <form id="task-form">
+                <input type="hidden" id="task-id">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-project-name">Tên dự án</label>
+                    <input type="text" id="task-project-name" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required readonly>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-discipline">Bộ môn</label>
+                    <input type="text" id="task-discipline" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-work-item">Hạng mục</label>
+                    <input type="text" id="task-work-item" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-assignee">Người phụ trách</label>
+                    <input type="text" id="task-assignee" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-start-date">Ngày bắt đầu</label>
+                    <input type="date" id="task-start-date" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-end-date">Ngày kết thúc</label>
+                    <input type="date" id="task-end-date" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-progress">Tiến độ (%)</label>
+                    <input type="number" id="task-progress" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" max="100" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="task-status">Trạng thái</label>
+                    <select id="task-status" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="Đang thực hiện">Đang thực hiện</option>
+                        <option value="Đã hoàn thành">Đã hoàn thành</option>
+                        <option value="Chờ duyệt">Chờ duyệt</option>
+                        <option value="Đã hủy">Đã hủy</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="close-task-modal-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                        Hủy
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                        Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal xác nhận chung -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content text-center">
+            <p id="confirmation-text" class="text-gray-800 font-semibold text-lg mb-4">Bạn có chắc chắn muốn thực hiện thao tác này?</p>
+            <div class="flex justify-center gap-4 mt-6">
+                <button id="cancel-confirmation-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                    Hủy
+                </button>
+                <button id="confirm-action-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                    Đồng ý
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal thông báo -->
+    <div id="message-modal" class="modal">
+        <div class="modal-content text-center">
+            <p id="message-text" class="text-gray-800 font-semibold text-lg mb-4"></p>
+            <button id="close-message-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu giả, đã bổ sung 2 trường mới cho mỗi dự án
+        let users = [
+            { id: 1, name: 'Nguyễn Văn A', email: 'vana@example.com', role: 'Admin', status: 'Hoạt động' },
+            { id: 2, name: 'Trần Thị B', email: 'thib@example.com', role: 'Kỹ sư', status: 'Hoạt động' },
+            { id: 3, name: 'Lê Văn C', email: 'vanc@example.com', role: 'Kế toán', status: 'Đã khóa' },
+            { id: 4, name: 'Phạm Thị D', email: 'thid@example.com', role: 'Kỹ sư', status: 'Hoạt động' },
+        ];
+
+        let estimates = [
+            { id: 1, workItem: 'Thiết kế kiến trúc', unit: 'm²', quantity: 120, unitPrice: 200000, total: 24000000 },
+            { id: 2, workItem: 'Thiết kế kết cấu', unit: 'm²', quantity: 120, unitPrice: 150000, total: 18000000 },
+            { id: 3, workItem: 'Thiết kế điện nước', unit: 'bộ', quantity: 1, unitPrice: 5000000, total: 5000000 },
+        ];
+        
+        // Dữ liệu dự án chính (đã bổ sung trường 'location', 'surveyContent', 'issues')
+        let projects = [
+            { id: 1, name: 'Dự án Văn phòng', assignee: 'Nguyễn Văn A', endDate: '2025-09-05', status: 'Theo tiến độ', location: 'Quận 1, TP. HCM', surveyContent: 'Nội dung khảo sát ban đầu: 120m2, thiết kế hiện đại, 3 tầng...', issues: 'Đã phát hiện một số vướng mắc về thủ tục cấp phép.' },
+            { id: 2, name: 'Dự án Nhà ở', assignee: 'Trần Thị B', endDate: '2025-09-20', status: 'Tạm dừng', location: 'Hà Nội', surveyContent: 'Khảo sát hiện trạng nhà ở đã xuống cấp, cần cải tạo lại toàn bộ.', issues: '' },
+            { id: 3, name: 'Dự án Bệnh viện', assignee: 'Lê Văn C', endDate: '2025-08-30', status: 'Gấp', location: 'Đà Nẵng', surveyContent: '', issues: 'Thiếu thông tin về các thiết bị y tế chuyên dụng.' },
+        ];
+
+        // Dữ liệu công việc con
+        let tasks = [
+            { id: 1, projectName: 'Dự án Văn phòng', discipline: 'Thiết kế kiến trúc', workItem: 'Khảo sát hiện trạng', assignee: 'Nguyễn Văn A', startDate: '2025-08-20', endDate: '2025-08-22', progress: 100, status: 'Đã hoàn thành' },
+            { id: 2, projectName: 'Dự án Văn phòng', discipline: 'Thiết kế kiến trúc', workItem: 'Thiết kế cơ sở', assignee: 'Trần Thị B', startDate: '2025-08-23', endDate: '2025-08-30', progress: 50, status: 'Đang thực hiện' },
+            { id: 3, projectName: 'Dự án Văn phòng', discipline: 'Dự toán', workItem: 'Lập dự toán', assignee: 'Lê Văn C', startDate: '2025-08-28', endDate: '2025-09-05', progress: 20, status: 'Đang thực hiện' },
+            { id: 4, projectName: 'Dự án Nhà ở', discipline: 'Thiết kế nội thất', workItem: 'Thiết kế 3D', assignee: 'Nguyễn Văn A', startDate: '2025-09-01', endDate: '2025-09-10', progress: 0, status: 'Chờ duyệt' },
+            { id: 5, projectName: 'Dự án Nhà ở', discipline: 'Thiết kế kết cấu', workItem: 'Lập hồ sơ thi công', assignee: 'Trần Thị B', startDate: '2025-09-06', endDate: '2025-09-20', progress: 0, status: 'Chờ duyệt' },
+            { id: 6, projectName: 'Dự án Văn phòng', discipline: 'Thiết kế điện nước', workItem: 'Triển khai chi tiết', assignee: 'Phạm Thị D', startDate: '2025-08-10', endDate: '2025-08-15', progress: 70, status: 'Đang thực hiện' },
+            { id: 7, projectName: 'Dự án Bệnh viện', discipline: 'Thiết kế nội thất', workItem: 'Thiết kế 3D', assignee: 'Nguyễn Văn A', startDate: '2025-08-01', endDate: '2025-08-15', progress: 10, status: 'Đang thực hiện' },
+        ];
+
+        // Lấy các phần tử DOM
+        const loginPage = document.getElementById('login-page');
+        const loginForm = document.getElementById('login-form');
+        const adminDashboard = document.getElementById('admin-dashboard');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginMessage = document.getElementById('login-message');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const userTableBody = document.getElementById('user-table-body');
+        const addUserBtn = document.getElementById('add-user-btn');
+        const userModal = document.getElementById('user-modal');
+        const userForm = document.getElementById('user-form');
+        const userModalTitle = document.getElementById('user-modal-title');
+        const closeUserModalBtn = document.getElementById('close-user-modal-btn');
+        const closeMessageModalBtn = document.getElementById('close-message-modal-btn');
+        const messageModal = document.getElementById('message-modal');
+        const messageText = document.getElementById('message-text');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationText = document.getElementById('confirmation-text');
+        const confirmActionBtn = document.getElementById('confirm-action-btn');
+        const cancelConfirmationBtn = document.getElementById('cancel-confirmation-btn');
+
+        let confirmCallback = null;
+        let loggedInUser = null;
+
+        // Function to show a message modal
+        function showMessage(msg) {
+            messageText.innerText = msg;
+            messageModal.style.display = 'flex';
+        }
+
+        // Function to show a confirmation modal
+        function showConfirmation(msg, callback) {
+            confirmationText.innerText = msg;
+            confirmCallback = callback;
+            confirmationModal.style.display = 'flex';
+        }
+
+        // --- LocalStorage Logic ---
+
+        // Key for storing users in localStorage
+        const STORAGE_KEY = 'admin-dashboard-users';
+
+        // Function to get users from localStorage
+        function getUsers() {
+            const usersJson = localStorage.getItem(STORAGE_KEY);
+            return usersJson ? JSON.parse(usersJson) : [];
+        }
+
+        // Function to save users to localStorage
+        function saveUsers(users) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+            renderUsersTable(); // Re-render the table after saving
+        }
+
+        // Initialize with a default admin user if none exist
+        function initializeUsers() {
+            let users = getUsers();
+            if (users.length === 0) {
+                const defaultAdmin = {
+                    id: 'admin-' + Date.now(),
+                    name: 'Admin',
+                    email: 'admin@example.com',
+                    password: 'password123',
+                    role: 'admin'
+                };
+                users.push(defaultAdmin);
+                saveUsers(users);
+            }
+        }
+        
+        // Function to generate a unique ID
+        function generateId() {
+            return 'user-' + Date.now() + Math.random().toString(36).substring(2, 9);
+        }
+
+        // --- UI Rendering and Event Handlers ---
+
+        // Render the user table from localStorage data
+        function renderUsersTable() {
+            const users = getUsers();
+            userTableBody.innerHTML = '';
+            users.forEach(user => {
+                const row = userTableBody.insertRow();
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.role}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="edit-btn text-blue-600 hover:text-blue-900 mr-4" data-id="${user.id}">Sửa</button>
+                        <button class="delete-btn text-red-600 hover:text-red-900" data-id="${user.id}">Xóa</button>
+                    </td>
+                `;
+            });
+
+            // Add event listeners to the new buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = e.target.dataset.id;
+                    const users = getUsers();
+                    const user = users.find(u => u.id === userId);
+                    if (user) {
+                        openUserModal('edit', user);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = e.target.dataset.id;
+                    showConfirmation('Bạn có chắc chắn muốn xóa người dùng này?', () => {
+                        deleteUser(userId);
+                    });
+                });
+            });
+        }
+        
+        // Open the user modal for adding or editing
+        function openUserModal(mode, user = {}) {
+            userForm.reset();
+            document.getElementById('user-id').value = user.id || '';
+            const passwordInput = document.getElementById('user-password');
+
+            if (mode === 'add') {
+                userModalTitle.innerText = 'Thêm người dùng mới';
+                passwordInput.required = true;
+            } else {
+                userModalTitle.innerText = 'Sửa thông tin người dùng';
+                document.getElementById('user-name').value = user.name || '';
+                document.getElementById('user-email').value = user.email || '';
+                document.getElementById('user-role').value = user.role || 'user';
+                passwordInput.value = ''; // Clear password field on edit
+                passwordInput.required = false; // Password is not required for edit
+            }
+            userModal.style.display = 'flex';
+        }
+
+        // Handle user form submission (add/edit)
+        userForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('user-id').value;
+            const name = document.getElementById('user-name').value;
+            const email = document.getElementById('user-email').value;
+            const role = document.getElementById('user-role').value;
+            const password = document.getElementById('user-password').value;
+
+            let users = getUsers();
+
+            if (userId) {
+                // Edit existing user
+                const userIndex = users.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    users[userIndex].name = name;
+                    users[userIndex].email = email;
+                    users[userIndex].role = role;
+                    if (password) {
+                        users[userIndex].password = password; // Only update password if provided
+                    }
+                    saveUsers(users);
+                    showMessage('Cập nhật người dùng thành công!');
+                } else {
+                    showMessage('Lỗi: Không tìm thấy người dùng!');
+                }
+            } else {
+                // Add new user
+                const newUser = {
+                    id: generateId(),
+                    name,
+                    email,
+                    role,
+                    password
+                };
+                users.push(newUser);
+                saveUsers(users);
+                showMessage('Thêm người dùng thành công!');
+            }
+            userModal.style.display = 'none';
+        });
+
+        // Delete a user
+        function deleteUser(userId) {
+            let users = getUsers();
+            const filteredUsers = users.filter(user => user.id !== userId);
+            saveUsers(filteredUsers);
+            showMessage('Đã xóa người dùng thành công!');
+        }
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const users = getUsers();
+
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                loggedInUser = user;
+                loginPage.classList.add('hidden');
+                adminDashboard.classList.remove('hidden');
+                loginMessage.classList.add('hidden');
+                renderUsersTable(); // Initial render of the table
+            } else {
+                loginMessage.innerText = 'Email hoặc mật khẩu không đúng.';
+                loginMessage.classList.remove('hidden');
+            }
+        });
+
+        // Handle logout button click
+        logoutBtn.addEventListener('click', () => {
+            loggedInUser = null;
+            adminDashboard.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            userForm.reset(); // Reset form when logging out
+            loginForm.reset(); // Clear login form
+        });
+
+        // Tab switching logic
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('text-blue-600', 'border-b-4', 'border-blue-600'));
+                tabButtons.forEach(btn => btn.classList.add('text-gray-600', 'hover:text-blue-600'));
+                button.classList.add('text-blue-600', 'border-b-4', 'border-blue-600');
+                button.classList.remove('text-gray-600', 'hover:text-blue-600');
+                tabContents.forEach(content => content.classList.add('hidden'));
+                const contentId = button.id.replace('-tab', '-content');
+                document.getElementById(contentId).classList.remove('hidden');
+            });
+        });
+
+        // Modal closing handlers
+        closeUserModalBtn.addEventListener('click', () => userModal.style.display = 'none');
+        document.getElementById('close-estimate-modal-btn').addEventListener('click', () => document.getElementById('estimate-modal').style.display = 'none');
+        document.getElementById('close-project-modal-btn').addEventListener('click', () => document.getElementById('project-modal').style.display = 'none');
+        document.getElementById('close-task-modal-btn').addEventListener('click', () => document.getElementById('task-modal').style.display = 'none');
+        cancelConfirmationBtn.addEventListener('click', () => confirmationModal.style.display = 'none');
+        closeMessageModalBtn.addEventListener('click', () => messageModal.style.display = 'none');
+        confirmActionBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            confirmationModal.style.display = 'none';
+        });
+
+        // Open Add User Modal
+        addUserBtn.addEventListener('click', () => openUserModal('add'));
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === userModal) userModal.style.display = 'none';
+            if (e.target === document.getElementById('estimate-modal')) document.getElementById('estimate-modal').style.display = 'none';
+            if (e.target === document.getElementById('project-modal')) document.getElementById('project-modal').style.display = 'none';
+            if (e.target === document.getElementById('task-modal')) document.getElementById('task-modal').style.display = 'none';
+            if (e.target === confirmationModal) confirmationModal.style.display = 'none';
+            if (e.target === messageModal) messageModal.style.display = 'none';
+        });
+
+        // Initialize user data on page load
+        initializeUsers();
+        
+        // Header thống kê
+        const totalProjectsEl = document.getElementById('total-projects');
+        const completedProjectsEl = document.getElementById('completed-projects');
+        const inProgressProjectsEl = document.getElementById('in-progress-projects');
+        const notStartedProjectsEl = document.getElementById('not-started-projects');
+
+        // Modal elements
+        const userModal = document.getElementById('user-modal');
+        const userForm = document.getElementById('user-form');
+        const userModalTitle = document.getElementById('user-modal-title');
+        const closeUserModalBtn = document.getElementById('close-user-modal-btn');
+        const estimateModal = document.getElementById('estimate-modal');
+        const estimateForm = document.getElementById('estimate-form');
+        const estimateModalTitle = document.getElementById('estimate-modal-title');
+        const closeEstimateModalBtn = document.getElementById('close-estimate-modal-btn');
+        const projectModal = document.getElementById('project-modal'); 
+        const projectForm = document.getElementById('project-form'); 
+        const projectModalTitle = document.getElementById('project-modal-title');
+        const closeProjectModalBtn = document.getElementById('close-project-modal-btn');
+        const taskModal = document.getElementById('task-modal');
+        const taskForm = document.getElementById('task-form');
+        const taskModalTitle = document.getElementById('task-modal-title');
+        const closeTaskModalBtn = document.getElementById('close-task-modal-btn');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationText = document.getElementById('confirmation-text');
+        const confirmActionBtn = document.getElementById('confirm-action-btn');
+        const cancelConfirmationBtn = document.getElementById('cancel-confirmation-btn');
+        const messageModal = document.getElementById('message-modal');
+        const messageText = document.getElementById('message-text');
+        const closeMessageModalBtn = document.getElementById('close-message-modal-btn');
+
+        // Table bodies
+        const userTableBody = document.getElementById('user-table-body');
+        const estimateTableBody = document.getElementById('estimate-table-body');
+        const projectTableBody = document.getElementById('project-table-body');
+        const taskListContainer = document.getElementById('task-list-container');
+
+        // Project detail elements
+        const projectOverview = document.getElementById('project-overview');
+        const projectDetail = document.getElementById('project-detail');
+        const projectDetailNameReadonly = document.getElementById('project-detail-name-readonly');
+        const projectDetailAssignee = document.getElementById('project-detail-assignee');
+        const projectDetailEndDate = document.getElementById('project-detail-end-date');
+        const projectDetailStatus = document.getElementById('project-detail-status');
+        const projectLocationInput = document.getElementById('project-location');
+        const saveLocationBtn = document.getElementById('save-location-btn');
+        const ganttChartContainer = document.getElementById('gantt-chart-container');
+
+        // Elements cho các phân vùng mới
+        const surveyHeader = document.getElementById('survey-header');
+        const surveyContent = document.getElementById('survey-content');
+        const surveyToggleIcon = document.getElementById('survey-toggle-icon');
+        const surveyTextarea = document.getElementById('survey-textarea');
+        const saveSurveyBtn = document.getElementById('save-survey-btn');
+
+        const issuesHeader = document.getElementById('issues-header');
+        const issuesContent = document.getElementById('issues-content');
+        const issuesToggleIcon = document.getElementById('issues-toggle-icon');
+        const issuesTextarea = document.getElementById('issues-textarea');
+        const saveIssuesBtn = document.getElementById('save-issues-btn');
+        
+        const backToProjectsBtn = document.getElementById('back-to-projects-btn');
+        const addProjectBtn = document.getElementById('add-project-btn');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        let currentProjectId = null; // Biến để lưu ID dự án hiện tại
+
+        let confirmCallback = null; // Callback function for confirmation modal
+
+        // --- Hàm chung ---
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageModal.style.display = 'flex';
+        }
+
+        function showConfirmation(message, callback) {
+            confirmationText.textContent = message;
+            confirmCallback = callback;
+            confirmationModal.style.display = 'flex';
+        }
+
+        // Hàm ẩn/hiện nội dung (mới)
+        function toggleContent(content, icon) {
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-90');
+        }
+        
+        // --- Quản lý hiển thị tab ---
+        function switchTab(tabId) {
+            // Ẩn tất cả nội dung tab và xóa active class
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.querySelectorAll('button[id$="-tab"]').forEach(btn => {
+                btn.classList.remove('border-b-4', 'border-blue-600', 'text-blue-600');
+                btn.classList.add('text-gray-600', 'hover:text-blue-600');
+            });
+
+            // Hiển thị nội dung tab được chọn và thêm active class
+            document.getElementById(`${tabId}-content`).classList.remove('hidden');
+            document.getElementById(`${tabId}-tab`).classList.add('border-b-4', 'border-blue-600', 'text-blue-600');
+            document.getElementById(`${tabId}-tab`).classList.remove('text-gray-600', 'hover:text-blue-600');
+        }
+
+        // --- Quản lý người dùng ---
+        function renderUsers() {
+            userTableBody.innerHTML = '';
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const statusClass = user.status === 'Hoạt động' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.role}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${user.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-4 edit-user-btn" data-id="${user.id}">Sửa</button>
+                        <button class="text-red-600 hover:text-red-900 delete-user-btn" data-id="${user.id}">Xóa</button>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
+            });
+        }
+
+        // --- Quản lý dự toán ---
+        function renderEstimates() {
+            estimateTableBody.innerHTML = '';
+            estimates.forEach(estimate => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${estimate.workItem}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${estimate.unit}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${estimate.quantity}</td>
+                    <td class="px-6 py-4 whitespace-now-wrap text-sm text-gray-500">${estimate.unitPrice.toLocaleString('vi-VN')} VNĐ</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">${estimate.total.toLocaleString('vi-VN')} VNĐ</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-4 edit-estimate-btn" data-id="${estimate.id}">Sửa</button>
+                        <button class="text-red-600 hover:text-red-900 delete-estimate-btn" data-id="${estimate.id}">Xóa</button>
+                    </td>
+                `;
+                estimateTableBody.appendChild(row);
+            });
+        }
+        
+        // --- Quản lý kế hoạch (Overview) ---
+        function updateProjectStats() {
+            const total = projects.length;
+            const completed = projects.filter(p => {
+                const projectTasks = tasks.filter(t => t.projectName === p.name);
+                return projectTasks.length > 0 && projectTasks.every(t => t.progress === 100);
+            }).length;
+            
+            const inProgress = projects.filter(p => {
+                const projectTasks = tasks.filter(t => t.projectName === p.name);
+                return projectTasks.length > 0 && projectTasks.some(t => t.progress > 0 && t.progress < 100);
+            }).length;
+
+            const notStarted = projects.filter(p => {
+                const projectTasks = tasks.filter(t => t.projectName === p.name);
+                return projectTasks.length > 0 && projectTasks.every(t => t.progress === 0);
+            }).length;
+
+            totalProjectsEl.textContent = total;
+            completedProjectsEl.textContent = completed;
+            inProgressProjectsEl.textContent = inProgress;
+            notStartedProjectsEl.textContent = notStarted;
+        }
+
+        function getProjectStatusColor(status) {
+            switch (status) {
+                case 'Gấp':
+                    return 'bg-red-500 text-white';
+                case 'Tạm dừng':
+                    return 'bg-blue-200 text-blue-800';
+                case 'Dừng':
+                    return 'bg-gray-500 text-white';
+                case 'Theo tiến độ':
+                    return 'bg-green-200 text-green-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        function getCalculatedStatusColor(status) {
+            switch (status) {
+                case 'Đã hoàn thành':
+                    return 'bg-green-100 text-green-800';
+                case 'Đang thực hiện':
+                    return 'bg-blue-100 text-blue-800';
+                case 'Chưa thực hiện':
+                    return 'bg-gray-100 text-gray-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        function renderProjects() {
+            projectTableBody.innerHTML = '';
+            
+            projects.forEach(project => {
+                const projectTasks = tasks.filter(task => task.projectName === project.name);
+                
+                // Tính số hạng mục
+                const numItems = projectTasks.length;
+                
+                // Tính tiến độ trung bình
+                const totalProgress = projectTasks.reduce((sum, task) => sum + task.progress, 0);
+                const avgProgress = numItems > 0 ? Math.round(totalProgress / numItems) : 0;
+                
+                // Xác định trạng thái tự động
+                let calculatedStatus = '';
+                if (avgProgress === 0) {
+                    calculatedStatus = 'Chưa thực hiện';
+                } else if (avgProgress > 0 && avgProgress < 100) {
+                    calculatedStatus = 'Đang thực hiện';
+                } else if (avgProgress === 100) {
+                    calculatedStatus = 'Đã hoàn thành';
+                }
+
+                const manualStatusColor = getProjectStatusColor(project.status);
+                const progressColor = avgProgress === 100 ? 'bg-green-600' : 'bg-blue-600';
+                const calculatedStatusColor = getCalculatedStatusColor(calculatedStatus);
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors duration-200';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 view-project-btn cursor-pointer" data-id="${project.id}">${project.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${numItems} hạng mục</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${project.assignee}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${project.endDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${manualStatusColor}">
+                            ${project.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${avgProgress}%
+                        <div class="relative w-full h-2 rounded-full bg-blue-200 mt-1">
+                            <div class="h-full rounded-full ${progressColor}" style="width: ${avgProgress}%;"></div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${calculatedStatusColor}">
+                            ${calculatedStatus}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-4 edit-project-btn" data-id="${project.id}">Sửa</button>
+                        <button class="text-red-600 hover:text-red-900 delete-project-btn" data-id="${project.id}">Xóa</button>
+                    </td>
+                `;
+                projectTableBody.appendChild(row);
+            });
+            updateProjectStats();
+        }
+
+        // --- Quản lý chi tiết công việc của dự án (Đã Cập nhật) ---
+        function renderTasks(projectName) {
+            taskListContainer.innerHTML = ''; // Xóa nội dung cũ
+            const projectTasks = tasks.filter(task => task.projectName === projectName);
+
+            // Gom nhóm công việc theo bộ môn
+            const groupedTasks = projectTasks.reduce((acc, task) => {
+                (acc[task.discipline] = acc[task.discipline] || []).push(task);
+                return acc;
+            }, {});
+
+            for (const discipline in groupedTasks) {
+                const disciplineTasks = groupedTasks[discipline];
+
+                // Tạo một div cho mỗi bộ môn
+                const disciplineSection = document.createElement('div');
+                disciplineSection.className = 'bg-white p-6 rounded-lg shadow-lg';
+
+                // Tiêu đề bộ môn
+                disciplineSection.innerHTML = `
+                    <h3 class="text-xl font-bold text-gray-700 mb-4">${discipline}</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hạng mục công việc</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Người phụ trách</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ngày bắt đầu</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ngày kết thúc</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tiến độ (%)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 task-table-body">
+                                <!-- Các hàng công việc con sẽ được thêm vào đây -->
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                // Thêm các hàng công việc vào bảng của bộ môn tương ứng
+                const taskTableBody = disciplineSection.querySelector('.task-table-body');
+                disciplineTasks.forEach(task => {
+                    const row = document.createElement('tr');
+                    const progressColor = task.progress === 100 ? 'bg-green-600' : 'bg-blue-600';
+                    const statusColor = getStatusColor(task.status);
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${task.workItem}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${task.assignee}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${task.startDate}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${task.endDate}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${task.progress}%
+                            <div class="relative w-full h-2 rounded-full bg-blue-200 mt-1">
+                                <div class="h-full rounded-full ${progressColor}" style="width: ${task.progress}%;"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                                ${task.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-indigo-600 hover:text-indigo-900 mr-4 edit-task-btn" data-id="${task.id}">Sửa</button>
+                            <button class="text-red-600 hover:text-red-900 delete-task-btn" data-id="${task.id}">Xóa</button>
+                        </td>
+                    `;
+                    taskTableBody.appendChild(row);
+                });
+
+                // Thêm toàn bộ phần của bộ môn vào container chính
+                taskListContainer.appendChild(disciplineSection);
+            }
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'Đã hoàn thành':
+                    return 'bg-green-100 text-green-800';
+                case 'Đang thực hiện':
+                    return 'bg-blue-100 text-blue-800';
+                case 'Chờ duyệt':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Đã hủy':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // --- Hàm vẽ sơ đồ Gantt (mới) ---
+        function renderGanttChart(projectName) {
+            ganttChartContainer.innerHTML = '';
+            const projectTasks = tasks.filter(task => task.projectName === projectName);
+
+            if (projectTasks.length === 0) {
+                ganttChartContainer.innerHTML = '<p class="text-center text-gray-500">Chưa có công việc nào trong dự án này.</p>';
+                return;
+            }
+
+            // Tìm ngày bắt đầu và kết thúc sớm nhất/muộn nhất
+            const minDate = new Date(Math.min(...projectTasks.map(t => new Date(t.startDate))));
+            const maxDate = new Date(Math.max(...projectTasks.map(t => new Date(t.endDate))));
+            const totalDays = (maxDate - minDate) / (1000 * 60 * 60 * 24) + 1;
+
+            // Gom nhóm công việc theo bộ môn
+            const groupedTasks = projectTasks.reduce((acc, task) => {
+                (acc[task.discipline] = acc[task.discipline] || []).push(task);
+                return acc;
+            }, {});
+
+            // Thêm tiêu đề ngày tháng
+            const timelineHeader = document.createElement('div');
+            timelineHeader.className = 'flex w-full text-xs font-semibold text-gray-500';
+            const timelineHeaderLabel = document.createElement('div');
+            timelineHeaderLabel.className = 'w-1/4 pr-2 text-right';
+            timelineHeader.appendChild(timelineHeaderLabel);
+
+            const timelineDates = document.createElement('div');
+            timelineDates.className = 'flex flex-grow justify-between border-b border-gray-300 pb-1';
+            const numSegments = 5; // Chia timeline thành 5 đoạn
+            const daysPerSegment = Math.ceil(totalDays / numSegments);
+            for (let i = 0; i < numSegments; i++) {
+                const date = new Date(minDate);
+                date.setDate(minDate.getDate() + i * daysPerSegment);
+                const dateLabel = document.createElement('span');
+                dateLabel.textContent = date.toLocaleDateString('vi-VN', { month: 'numeric', day: 'numeric' });
+                timelineDates.appendChild(dateLabel);
+            }
+            timelineHeader.appendChild(timelineDates);
+            ganttChartContainer.appendChild(timelineHeader);
+
+            // Vẽ từng bộ môn
+            for (const discipline in groupedTasks) {
+                const disciplineTasks = groupedTasks[discipline];
+                
+                const disciplineContainer = document.createElement('div');
+                disciplineContainer.className = 'my-4';
+
+                const disciplineTitle = document.createElement('h4');
+                disciplineTitle.className = 'text-lg font-semibold text-gray-700 mb-2';
+                disciplineTitle.textContent = discipline;
+                disciplineContainer.appendChild(disciplineTitle);
+
+                disciplineTasks.forEach(task => {
+                    const startDate = new Date(task.startDate);
+                    const endDate = new Date(task.endDate);
+                    const taskDuration = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1;
+                    const startOffset = (startDate - minDate) / (1000 * 60 * 60 * 24);
+
+                    const taskRow = document.createElement('div');
+                    taskRow.className = 'flex items-center space-x-2';
+
+                    const taskLabel = document.createElement('div');
+                    taskLabel.className = 'w-1/4 text-sm font-medium text-gray-800 truncate';
+                    taskLabel.textContent = task.workItem;
+                    taskRow.appendChild(taskLabel);
+
+                    const taskBarContainer = document.createElement('div');
+                    taskBarContainer.className = 'flex-grow h-6 bg-gray-200 rounded-md overflow-hidden relative';
+                    
+                    const taskBar = document.createElement('div');
+                    const progressWidth = task.progress;
+                    const barWidth = (taskDuration / totalDays) * 100;
+                    const barOffset = (startOffset / totalDays) * 100;
+                    
+                    taskBar.className = `h-full rounded-md shadow-md transition-all duration-300 ease-in-out`;
+                    taskBar.style.width = `${barWidth}%`;
+                    taskBar.style.marginLeft = `${barOffset}%`;
+                    taskBar.style.backgroundColor = '#60a5fa'; // Màu của thanh
+                    
+                    const taskProgressBar = document.createElement('div');
+                    taskProgressBar.className = `h-full bg-blue-600 rounded-md transition-all duration-300 ease-in-out`;
+                    taskProgressBar.style.width = `${progressWidth}%`;
+                    taskBar.appendChild(taskProgressBar);
+
+                    const taskProgressText = document.createElement('span');
+                    taskProgressText.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-white z-10';
+                    taskProgressText.textContent = `${task.progress}%`;
+                    if (task.progress === 0) taskProgressText.textContent = ''; // Ẩn % nếu tiến độ là 0
+                    
+                    taskBarContainer.appendChild(taskBar);
+                    taskBarContainer.appendChild(taskProgressText);
+                    taskRow.appendChild(taskBarContainer);
+                    disciplineContainer.appendChild(taskRow);
+                });
+
+                ganttChartContainer.appendChild(disciplineContainer);
+            }
+        }
+        
+        // --- Xử lý sự kiện chung ---
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('planning'); // Mặc định mở tab Kế hoạch
+            renderUsers();
+            renderEstimates();
+            renderProjects();
+        });
+
+        usersTab.addEventListener('click', () => switchTab('users'));
+        estimatesTab.addEventListener('click', () => switchTab('estimates'));
+        planningTab.addEventListener('click', () => {
+            switchTab('planning');
+            renderProjects();
+        });
+        
+        // --- Quản lý người dùng events ---
+        document.getElementById('add-user-btn').addEventListener('click', () => {
+            userModalTitle.textContent = 'Thêm người dùng mới';
+            userForm.reset();
+            document.getElementById('user-id').value = '';
+            userModal.style.display = 'flex';
+        });
+
+        userTableBody.addEventListener('click', (e) => {
+            const target = e.target;
+            const id = parseInt(target.dataset.id);
+
+            if (target.classList.contains('edit-user-btn')) {
+                const userToEdit = users.find(user => user.id === id);
+                if (userToEdit) {
+                    userModalTitle.textContent = 'Chỉnh sửa người dùng';
+                    document.getElementById('user-id').value = userToEdit.id;
+                    document.getElementById('user-name').value = userToEdit.name;
+                    document.getElementById('user-email').value = userToEdit.email;
+                    document.getElementById('user-role').value = userToEdit.role;
+                    document.getElementById('user-status').value = userToEdit.status;
+                    userModal.style.display = 'flex';
+                }
+            }
+
+            if (target.classList.contains('delete-user-btn')) {
+                showConfirmation('Bạn có chắc chắn muốn xóa người dùng này?', () => {
+                    users = users.filter(user => user.id !== id);
+                    renderUsers();
+                    showMessage('Đã xóa người dùng thành công.');
+                });
+            }
+        });
+
+        userForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('user-id').value;
+            const name = document.getElementById('user-name').value;
+            const email = document.getElementById('user-email').value;
+            const role = document.getElementById('user-role').value;
+            const status = document.getElementById('user-status').value;
+
+            if (userId) {
+                const userIndex = users.findIndex(user => user.id === parseInt(userId));
+                if (userIndex !== -1) {
+                    users[userIndex] = { ...users[userIndex], name, email, role, status };
+                }
+                showMessage('Đã cập nhật thông tin người dùng.');
+            } else {
+                const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+                const newUser = { id: newId, name, email, role, status };
+                users.push(newUser);
+                showMessage('Đã thêm người dùng mới.');
+            }
+            userModal.style.display = 'none';
+            renderUsers();
+        });
+
+        // --- Quản lý dự toán events ---
+        document.getElementById('add-estimate-btn').addEventListener('click', () => {
+            estimateModalTitle.textContent = 'Thêm hạng mục dự toán';
+            estimateForm.reset();
+            document.getElementById('estimate-id').value = '';
+            document.getElementById('estimate-total').textContent = '0 VNĐ';
+            estimateModal.style.display = 'flex';
+        });
+
+        estimateForm.addEventListener('input', () => {
+            const quantity = parseFloat(document.getElementById('estimate-quantity').value) || 0;
+            const unitPrice = parseFloat(document.getElementById('estimate-unit-price').value) || 0;
+            const total = quantity * unitPrice;
+            document.getElementById('estimate-total').textContent = total.toLocaleString('vi-VN') + ' VNĐ';
+        });
+
+        estimateForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const estimateId = document.getElementById('estimate-id').value;
+            const workItem = document.getElementById('estimate-work-item').value;
+            const unit = document.getElementById('estimate-unit').value;
+            const quantity = parseFloat(document.getElementById('estimate-quantity').value);
+            const unitPrice = parseFloat(document.getElementById('estimate-unit-price').value);
+            const total = quantity * unitPrice;
+
+            if (estimateId) {
+                const estimateIndex = estimates.findIndex(est => est.id === parseInt(estimateId));
+                if (estimateIndex !== -1) {
+                    estimates[estimateIndex] = { ...estimates[estimateIndex], workItem, unit, quantity, unitPrice, total };
+                }
+                showMessage('Đã cập nhật dự toán.');
+            } else {
+                const newId = estimates.length > 0 ? Math.max(...estimates.map(e => e.id)) + 1 : 1;
+                const newEstimate = { id: newId, workItem, unit, quantity, unitPrice, total };
+                estimates.push(newEstimate);
+                showMessage('Đã thêm hạng mục dự toán mới.');
+            }
+            estimateModal.style.display = 'none';
+            renderEstimates();
+        });
+
+        estimateTableBody.addEventListener('click', (e) => {
+            const target = e.target;
+            const id = parseInt(target.dataset.id);
+            if (target.classList.contains('edit-estimate-btn')) {
+                const estimateToEdit = estimates.find(est => est.id === id);
+                if (estimateToEdit) {
+                    estimateModalTitle.textContent = 'Chỉnh sửa dự toán';
+                    document.getElementById('estimate-id').value = estimateToEdit.id;
+                    document.getElementById('estimate-work-item').value = estimateToEdit.workItem;
+                    document.getElementById('estimate-unit').value = estimateToEdit.unit;
+                    document.getElementById('estimate-quantity').value = estimateToEdit.quantity;
+                    document.getElementById('estimate-unit-price').value = estimateToEdit.unitPrice;
+                    document.getElementById('estimate-total').textContent = estimateToEdit.total.toLocaleString('vi-VN') + ' VNĐ';
+                    estimateModal.style.display = 'flex';
+                }
+            }
+            if (target.classList.contains('delete-estimate-btn')) {
+                showConfirmation('Bạn có chắc chắn muốn xóa hạng mục này?', () => {
+                    estimates = estimates.filter(est => est.id !== id);
+                    renderEstimates();
+                    showMessage('Đã xóa hạng mục dự toán.');
+                });
+            }
+        });
+
+        // --- Quản lý kế hoạch events ---
+        addProjectBtn.addEventListener('click', () => {
+            projectModalTitle.textContent = 'Thêm dự án mới';
+            projectForm.reset();
+            document.getElementById('project-id').value = '';
+            projectModal.style.display = 'flex';
+        });
+
+        projectTableBody.addEventListener('click', (e) => {
+            const target = e.target;
+            const id = parseInt(target.dataset.id);
+            const project = projects.find(p => p.id === id);
+            
+            if (target.classList.contains('view-project-btn')) {
+                if (project) {
+                    currentProjectId = id;
+                    showProjectDetail();
+                    renderTasks(project.name);
+                    renderGanttChart(project.name);
+                }
+            }
+            
+            if (target.classList.contains('edit-project-btn')) {
+                if (project) {
+                    projectModalTitle.textContent = 'Chỉnh sửa dự án';
+                    document.getElementById('project-id').value = project.id;
+                    document.getElementById('project-name').value = project.name;
+                    document.getElementById('project-assignee').value = project.assignee;
+                    document.getElementById('project-end-date').value = project.endDate;
+                    document.getElementById('project-status').value = project.status;
+                    document.getElementById('project-location-modal').value = project.location || '';
+                    projectModal.style.display = 'flex';
+                }
+            }
+
+            if (target.classList.contains('delete-project-btn')) {
+                 if (project) {
+                    showConfirmation('Bạn có chắc chắn muốn xóa dự án này? Điều này sẽ xóa tất cả công việc liên quan.', () => {
+                        projects = projects.filter(p => p.id !== id);
+                        tasks = tasks.filter(t => t.projectName !== project.name);
+                        renderProjects();
+                        showMessage('Đã xóa dự án thành công.');
+                    });
+                }
+            }
+        });
+
+        projectForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const projectId = document.getElementById('project-id').value;
+            const name = document.getElementById('project-name').value;
+            const assignee = document.getElementById('project-assignee').value;
+            const endDate = document.getElementById('project-end-date').value;
+            const status = document.getElementById('project-status').value;
+            const location = document.getElementById('project-location-modal').value;
+
+            if (projectId) {
+                const projectIndex = projects.findIndex(p => p.id === parseInt(projectId));
+                if (projectIndex !== -1) {
+                    projects[projectIndex] = { ...projects[projectIndex], name, assignee, endDate, status, location };
+                }
+                showMessage('Đã cập nhật dự án.');
+            } else {
+                const newId = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+                const newProject = { id: newId, name, assignee, endDate, status, location, surveyContent: '', issues: '' };
+                projects.push(newProject);
+                showMessage('Đã thêm dự án mới.');
+            }
+            projectModal.style.display = 'none';
+            renderProjects();
+        });
+
+        backToProjectsBtn.addEventListener('click', () => {
+            projectDetail.classList.add('hidden');
+            projectOverview.classList.remove('hidden');
+            renderProjects();
+        });
+
+        addTaskBtn.addEventListener('click', () => {
+            taskModalTitle.textContent = 'Thêm công việc mới';
+            taskForm.reset();
+            document.getElementById('task-id').value = '';
+            const currentProject = projects.find(p => p.id === currentProjectId);
+            document.getElementById('task-project-name').value = currentProject ? currentProject.name : '';
+            taskModal.style.display = 'flex';
+        });
+
+        // Xử lý sự kiện lưu địa điểm dự án
+        saveLocationBtn.addEventListener('click', () => {
+            if (currentProjectId) {
+                const project = projects.find(p => p.id === currentProjectId);
+                if (project) {
+                    project.location = projectLocationInput.value;
+                    showMessage('Đã lưu địa điểm dự án thành công.');
+                }
+            }
+        });
+
+        // Event listener mới cho toàn bộ container
+        taskListContainer.addEventListener('click', (e) => {
+            const target = e.target;
+            const id = parseInt(target.dataset.id);
+
+            if (target.classList.contains('edit-task-btn')) {
+                const taskToEdit = tasks.find(task => task.id === id);
+                if (taskToEdit) {
+                    taskModalTitle.textContent = 'Chỉnh sửa công việc';
+                    document.getElementById('task-id').value = taskToEdit.id;
+                    document.getElementById('task-project-name').value = taskToEdit.projectName;
+                    document.getElementById('task-discipline').value = taskToEdit.discipline;
+                    document.getElementById('task-work-item').value = taskToEdit.workItem;
+                    document.getElementById('task-assignee').value = taskToEdit.assignee;
+                    document.getElementById('task-start-date').value = taskToEdit.startDate;
+                    document.getElementById('task-end-date').value = taskToEdit.endDate;
+                    document.getElementById('task-progress').value = taskToEdit.progress;
+                    document.getElementById('task-status').value = taskToEdit.status;
+                    taskModal.style.display = 'flex';
+                }
+            }
+
+            if (target.classList.contains('delete-task-btn')) {
+                showConfirmation('Bạn có chắc chắn muốn xóa công việc này?', () => {
+                    tasks = tasks.filter(task => task.id !== id);
+                    const currentProject = projects.find(p => p.id === currentProjectId);
+                    renderTasks(currentProject ? currentProject.name : '');
+                    renderGanttChart(currentProject ? currentProject.name : '');
+                    showMessage('Đã xóa công việc thành công.');
+                });
+            }
+        });
+
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const taskId = document.getElementById('task-id').value;
+            const projectName = document.getElementById('task-project-name').value;
+            const discipline = document.getElementById('task-discipline').value;
+            const workItem = document.getElementById('task-work-item').value;
+            const assignee = document.getElementById('task-assignee').value;
+            const startDate = document.getElementById('task-start-date').value;
+            const endDate = document.getElementById('task-end-date').value;
+            const progress = parseInt(document.getElementById('task-progress').value);
+            const status = document.getElementById('task-status').value;
+
+            const newTask = {
+                id: taskId ? parseInt(taskId) : Math.max(...tasks.map(t => t.id), 0) + 1,
+                projectName,
+                discipline,
+                workItem,
+                assignee,
+                startDate,
+                endDate,
+                progress,
+                status
+            };
+
+            if (taskId) {
+                const taskIndex = tasks.findIndex(task => task.id === parseInt(taskId));
+                if (taskIndex !== -1) {
+                    tasks[taskIndex] = newTask;
+                }
+                showMessage('Đã cập nhật công việc.');
+            } else {
+                tasks.push(newTask);
+                showMessage('Đã thêm công việc mới.');
+            }
+
+            taskModal.style.display = 'none';
+            const currentProject = projects.find(p => p.id === currentProjectId);
+            renderTasks(currentProject ? currentProject.name : '');
+            renderGanttChart(currentProject ? currentProject.name : '');
+            renderProjects();
+        });
+
+        // --- Logic hiển thị trang chi tiết dự án ---
+        function showProjectDetail() {
+            projectDetail.classList.remove('hidden');
+            projectOverview.classList.add('hidden');
+            const project = projects.find(p => p.id === currentProjectId);
+            if (project) {
+                projectDetailNameReadonly.textContent = project.name;
+                projectDetailAssignee.textContent = project.assignee;
+                projectDetailEndDate.textContent = project.endDate;
+                projectDetailStatus.textContent = project.status;
+                projectLocationInput.value = project.location || '';
+                
+                // Cập nhật nội dung cho các phân vùng mới
+                surveyTextarea.value = project.surveyContent || '';
+                issuesTextarea.value = project.issues || '';
+                
+                // Đảm bảo các phân vùng nội dung bị ẩn khi mới mở
+                if (!surveyContent.classList.contains('hidden')) {
+                    surveyContent.classList.add('hidden');
+                    surveyToggleIcon.classList.add('rotate-90');
+                }
+                if (!issuesContent.classList.contains('hidden')) {
+                    issuesContent.classList.add('hidden');
+                    issuesToggleIcon.classList.add('rotate-90');
+                }
+            }
+        }
+
+        // --- Logic lưu nội dung mới ---
+        saveSurveyBtn.addEventListener('click', () => {
+            const project = projects.find(p => p.id === currentProjectId);
+            if (project) {
+                project.surveyContent = surveyTextarea.value;
+                showMessage('Đã lưu nội dung khảo sát thành công.');
+            }
+        });
+
+        saveIssuesBtn.addEventListener('click', () => {
+            const project = projects.find(p => p.id === currentProjectId);
+            if (project) {
+                project.issues = issuesTextarea.value;
+                showMessage('Đã lưu vướng mắc thành công.');
+            }
+        });
+
+        // --- Logic ẩn/hiện nội dung ---
+        surveyHeader.addEventListener('click', () => toggleContent(surveyContent, surveyToggleIcon));
+        issuesHeader.addEventListener('click', () => toggleContent(issuesContent, issuesToggleIcon));
+
+        // --- Quản lý Modal events ---
+        closeUserModalBtn.addEventListener('click', () => userModal.style.display = 'none');
+        closeEstimateModalBtn.addEventListener('click', () => estimateModal.style.display = 'none');
+        closeProjectModalBtn.addEventListener('click', () => projectModal.style.display = 'none');
+        closeTaskModalBtn.addEventListener('click', () => taskModal.style.display = 'none');
+        closeMessageModalBtn.addEventListener('click', () => messageModal.style.display = 'none');
+        cancelConfirmationBtn.addEventListener('click', () => confirmationModal.style.display = 'none');
+
+        confirmActionBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            confirmationModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === userModal) userModal.style.display = 'none';
+            if (e.target === estimateModal) estimateModal.style.display = 'none';
+            if (e.target === projectModal) projectModal.style.display = 'none';
+            if (e.target === taskModal) taskModal.style.display = 'none';
+            if (e.target === confirmationModal) confirmationModal.style.display = 'none';
+            if (e.target === messageModal) messageModal.style.display = 'none';
+        });
+        
+        // Xử lý nút đăng xuất (giả lập)
+        logoutBtn.addEventListener('click', () => {
+            showMessage('Đăng xuất thành công.');
+        });
+    </script>
+</body>
+</html>
